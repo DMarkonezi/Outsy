@@ -3,45 +3,62 @@ package com.example.outsy
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import com.example.outsy.ui.theme.OutsyTheme
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import com.example.outsy.ui.HomeScreen
+import com.example.outsy.ui.auth.LoginScreen
+import com.example.outsy.ui.auth.RegisterScreen
+import com.example.outsy.viewmodel.AuthViewModel
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
         setContent {
-            OutsyTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
-            }
+            MyApp()
         }
     }
 }
 
 @Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
+fun MyApp() {
+    val navController = rememberNavController()
+    val authViewModel: AuthViewModel = viewModel()
 
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    OutsyTheme {
-        Greeting("Android")
+    MaterialTheme {
+        NavHost(navController = navController, startDestination = "login") {
+            composable("login") {
+                LoginScreen(
+                    onLoginClick = {email, password ->
+                        authViewModel.login(email, password)
+                        navController.navigate("home")
+                    },
+                    onNavigateToRegister = { navController.navigate("register") }
+                )
+            }
+
+            composable("register") {
+                RegisterScreen(
+                    onRegisterClick = { email, password, phone, profileBitmap ->
+                        authViewModel.register(email, password, phone, profileBitmap)
+                    },
+                    onNavigateToLogin = {
+                        navController.navigate("login") {
+                            popUpTo("login") { inclusive = true }
+                        }
+                    }
+                )
+            }
+
+            composable("home") {
+                HomeScreen()
+            }
+        }
     }
+
+
 }

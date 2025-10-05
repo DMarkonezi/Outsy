@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "595061529737",
+    "project_id": "outsy-337e7",
+    "storage_bucket": "outsy-337e7.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:595061529737:android:f48a0508c93054efe07a58",
+        "android_client_info": {
+          "package_name": "com.example.outsy"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyADtOp03s4cwcOQHz3AdNB5gaNjDzSNC0c"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
