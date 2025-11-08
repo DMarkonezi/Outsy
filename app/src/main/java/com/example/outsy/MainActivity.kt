@@ -1,6 +1,7 @@
 package com.example.outsy
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.material3.MaterialTheme
@@ -43,8 +44,24 @@ fun MyApp() {
 
             composable("register") {
                 RegisterScreen(
-                    onRegisterClick = { email, password, phone, profileBitmap ->
-                        authViewModel.register(email, password, phone, profileBitmap)
+                    onRegisterClick = { firstName, lastName, email, password, phone, profileBitmap ->
+                        authViewModel.register(
+                            firstName = firstName,
+                            lastName = lastName,
+                            email = email,
+                            password = password,
+                            phoneNumber = phone,
+                            location = null,
+                            profileBitmap = profileBitmap
+                        ) { success, errorMessage ->
+                            if (success) {
+                                navController.navigate("home") {
+                                    popUpTo("login") { inclusive = true }
+                                }
+                            } else {
+                                Log.e("Register", "Registration failed: $errorMessage")
+                            }
+                        }
                     },
                     onNavigateToLogin = {
                         navController.navigate("login") {

@@ -1,18 +1,18 @@
 package com.example.outsy.data.repository
 
-import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import android.util.Base64
 import android.util.Log
-import android.widget.Toast
+import com.example.outsy.data.models.User
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.storage.FirebaseStorage
 import java.io.ByteArrayOutputStream
+import com.google.firebase.firestore.GeoPoint
 
 class AuthRepository(
     private val auth: FirebaseAuth = FirebaseAuth.getInstance(),
-    private val firestore: FirebaseFirestore = FirebaseFirestore.getInstance()
+    private val firestore: FirebaseFirestore = FirebaseFirestore.getInstance(),
+    private val storage: FirebaseStorage = FirebaseStorage.getInstance()
 ) {
 
     fun login(email: String, password: String, onResult: (Boolean, String?) -> Unit) {
@@ -23,44 +23,17 @@ class AuthRepository(
             }
     }
 
-//    fun register(
-//        email: String,
-//        password: String,
-//        phone: String,
-//        profileBitmap: Bitmap?,
-//        onResult: (Boolean, String?) -> Unit
-//    ) {
-//        auth.createUserWithEmailAndPassword(email, password)
-//            .addOnCompleteListener { task ->
-//                if (task.isSuccessful) {
-//                    val uid = auth.currentUser?.uid
-//                    if (uid != null) {
-//                        val user = hashMapOf(
-//                            "email" to email,
-//                            "phone" to phone,
-//                            "photoBase64" to profileBitmap?.let { bitmapToBase64(it) }
-//                        )
-//
-//                        firestore.collection("users").document(uid)
-//                            .set(user)
-//                            .addOnSuccessListener { onResult(true, null) }
-//                            .addOnFailureListener { e -> onResult(false, e.message) }
-//                    } else {
-//                        onResult(false, "UID is null")
-//                    }
-//                } else {
-//                    onResult(false, task.exception?.message)
-//                }
-//            }
-//    }
-
     fun register(
+        firstName: String,
+        lastName: String,
         email: String,
         password: String,
-        phone: String,
+        phoneNumber: String,
+        location: GeoPoint?,
         profileBitmap: Bitmap?,
         onResult: (Boolean, String?) -> Unit
     ) {
+
         auth.createUserWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
                 if (!task.isSuccessful) {
@@ -70,6 +43,7 @@ class AuthRepository(
                 }
 
                 val uid = auth.currentUser?.uid
+
                 if (uid == null) {
                     Log.e("RegisterError", "UID is null")
                     onResult(false, "UID is null")
@@ -78,58 +52,72 @@ class AuthRepository(
 
                 Log.d("Register", "Creating user document for UID: $uid")
 
-                val user = hashMapOf(
-                    "email" to email,
-                    "phone" to phone,
-                    "photoBase64" to profileBitmap?.let { bitmapToBase64(it) }
-                )
-
-                firestore.collection("users").document(uid)
-                    .set(user)
-                    .addOnSuccessListener {
-                        Log.d("Register", "Firestore write successful")
-                        onResult(true, null)
+                if (profileBitmap != null) {
+                    uploadProfileImage(uid, profileBitmap) { imageUrl ->
+                        saveUserToFirestore(uid, firstName, lastName, email, phoneNumber, location, imageUrl, onResult)
                     }
-                    .addOnFailureListener { e ->
-                        Log.e("RegisterError", "Firestore failed: ${e.message}", e)
-                        onResult(false, e.message)
-                    }
+                } else {
+                    saveUserToFirestore(uid, firstName, lastName, email, phoneNumber, location, null, onResult)
+                }
             }
     }
 
+    private fun uploadProfileImage(uid: String, bitmap: Bitmap, onComplete: (String?) -> Unit) {
+        val ref = storage.reference.child("profile_images/$uid.jpg")
+        val baos = ByteArrayOutputStream()
 
-    private fun bitmapToBase64(bitmap: Bitmap): String {
-        val outputStream = ByteArrayOutputStream()
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
-        return Base64.encodeToString(outputStream.toByteArray(), Base64.DEFAULT)
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 80, baos)
+        val data = baos.toByteArray()
+
+        ref.putBytes(data)
+            .addOnSuccessListener {
+                ref.downloadUrl.addOnSuccessListener { uri ->
+                    Log.d("Register", "Image uploaded successfully: $uri")
+                    onComplete(uri.toString())
+                }
+            }
+            .addOnFailureListener {
+                Log.e("Storage", "Image upload failed: ${it.message}")
+                onComplete(null)
+            }
     }
 
-    private fun saveUserData(
+    private fun saveUserToFirestore(
         uid: String,
+        firstName: String,
+        lastName: String,
         email: String,
-        phone: String,
-        photoBase64: String?,
+        phoneNumber: String,
+        location: GeoPoint?,
+        imageUrl: String?,
         onResult: (Boolean, String?) -> Unit
     ) {
-        val user = hashMapOf(
-            "email" to email,
-            "phone" to phone,
-            "photoBase64" to photoBase64
+        val user = User(
+            uid = uid,
+            firstName = firstName,
+            lastName = lastName,
+            email = email,
+            phoneNumber = phoneNumber,
+            photoUrl = imageUrl?: "",
+            status = "Not going out",
+            points = 0,
+            location = location?.let { GeoPoint(it.latitude, it.longitude) }
         )
 
         firestore.collection("users")
             .document(uid)
             .set(user)
-            .addOnSuccessListener { onResult(true, null) }
-            .addOnFailureListener { e -> onResult(false, e.message) }
+            .addOnSuccessListener {
+                Log.d("Register", "User saved successfully")
+                onResult(true, null)
+            }
+            .addOnFailureListener { e ->
+                Log.e("Register", "Firestore write failed: ${e.message}")
+                onResult(false, e.message)
+            }
     }
 
-    fun getUserProfileImage(base64String: String?): Bitmap? {
-        return base64String?.let {
-            val decodedBytes = Base64.decode(it, Base64.DEFAULT)
-            BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.size)
-        }
-    }
+    // TODO dodati neki email check da li je validan i slicno
 
     fun logout() {
         auth.signOut()

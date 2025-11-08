@@ -3,7 +3,14 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     id("com.google.gms.google-services")
+    id("com.google.android.libraries.mapsplatform.secrets-gradle-plugin")
 }
+
+/*buildscript {
+    dependencies {
+        classpath("com.google.android.libraries.mapsplatform.secrets-gradleplugin:secrets-gradle-plugin:2.0.1")
+    }
+}*/
 
 android {
     namespace = "com.example.outsy"
@@ -61,5 +68,10 @@ dependencies {
     implementation ("androidx.navigation:navigation-compose:2.7.0")
     implementation(platform("com.google.firebase:firebase-bom:34.3.0"))
     implementation("com.google.firebase:firebase-auth")
-    implementation ("com.google.firebase:firebase-firestore")
+    implementation("com.google.firebase:firebase-firestore")
+    implementation("com.google.firebase:firebase-storage")
+
+    implementation("com.google.maps.android:maps-compose:4.4.1")
+    implementation ("com.google.android.gms:play-services-maps:18.2.0")
+    implementation ("com.google.android.gms:play-services-location:21.2.0")
 }

@@ -1,5 +1,6 @@
 package com.example.outsy.ui.auth
 
+import android.graphics.Bitmap
 import android.provider.MediaStore
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -31,7 +32,7 @@ import androidx.compose.ui.unit.dp
 fun RegisterScreenPreview() {
     MaterialTheme {
         RegisterScreen(
-            onRegisterClick = {_, _, _, _-> },
+            onRegisterClick = {_, _, _, _, _, _-> },
             onNavigateToLogin = {}
         )
     }
@@ -39,15 +40,20 @@ fun RegisterScreenPreview() {
 
 @Composable
 fun RegisterScreen(
-    onRegisterClick: (String, String, String, android.graphics.Bitmap?) -> Unit,
-    onNavigateToLogin: () -> Unit
+    onRegisterClick: (firstName: String, lastName: String, email: String, password: String, phone: String, profileBitmap: Bitmap?) -> Unit,
+    onNavigateToLogin: () -> Unit,
+    isLoading: Boolean = false
 ) {
+    var firstName by remember { mutableStateOf("") }
+    var lastName by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var phone by remember { mutableStateOf("") }
     var profileBitmap by remember { mutableStateOf<android.graphics.Bitmap?>(null) }
 
     // State za prikazivanje grešaka
+    var firstNameError by remember { mutableStateOf<String?>(null) }
+    var lastNameError by remember { mutableStateOf<String?>(null) }
     var emailError by remember { mutableStateOf<String?>(null) }
     var passwordError by remember { mutableStateOf<String?>(null) }
     var phoneError by remember { mutableStateOf<String?>(null) }
@@ -69,13 +75,43 @@ fun RegisterScreen(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text("Registracija", style = MaterialTheme.typography.headlineSmall)
+        Text("Registration", style = MaterialTheme.typography.headlineSmall)
+
+        OutlinedTextField(
+            value = firstName,
+            onValueChange = {
+                firstName = it
+                firstNameError = null
+            },
+            label = { Text("Name") },
+            isError = firstNameError != null,
+            supportingText = firstNameError?.let { { Text(it) } },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 16.dp),
+            enabled = !isLoading
+        )
+
+        OutlinedTextField(
+            value = lastName,
+            onValueChange = {
+                lastName = it
+                lastNameError = null
+            },
+            label = { Text("Surname") },
+            isError = lastNameError != null,
+            supportingText = lastNameError?.let { { Text(it) } },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 16.dp),
+            enabled = !isLoading
+        )
 
         OutlinedTextField(
             value = email,
             onValueChange = {
                 email = it
-                emailError = null // Resetuj grešku kad korisnik kuca
+                emailError = null
             },
             label = { Text("Email") },
             isError = emailError != null,
@@ -91,7 +127,7 @@ fun RegisterScreen(
                 password = it
                 passwordError = null
             },
-            label = { Text("Lozinka") },
+            label = { Text("Password") },
             singleLine = true,
             visualTransformation = PasswordVisualTransformation(),
             isError = passwordError != null,
@@ -107,7 +143,7 @@ fun RegisterScreen(
                 phone = it
                 phoneError = null
             },
-            label = { Text("Broj telefona") },
+            label = { Text("Phone number") },
             isError = phoneError != null,
             supportingText = phoneError?.let { { Text(it) } },
             modifier = Modifier
@@ -121,66 +157,75 @@ fun RegisterScreen(
                 .fillMaxWidth()
                 .padding(top = 16.dp)
         ) {
-            Text(if (profileBitmap != null) "Slika izabrana ✓" else "Izaberi profilnu sliku")
+            Text(if (profileBitmap != null) "Image selected ✓" else "Choose profile image")
         }
 
         Button(
             onClick = {
-                // Trimuj sve vrednosti
+                val trimmedFirstName = firstName.trim()
+                val trimmedLastName = lastName.trim()
                 val trimmedEmail = email.trim()
                 val trimmedPassword = password.trim()
                 val trimmedPhone = phone.trim()
 
-                // Resetuj sve greške
                 emailError = null
                 passwordError = null
                 phoneError = null
 
                 var hasError = false
 
-                // Validacija email-a
-                if (trimmedEmail.isEmpty()) {
-                    emailError = "Unesite email"
+                if (trimmedFirstName.isEmpty()) {
+                    emailError = "Enter name"
                     hasError = true
                 } else if (!android.util.Patterns.EMAIL_ADDRESS.matcher(trimmedEmail).matches()) {
-                    emailError = "Email nije validan"
+                    emailError = "Email format is not valid"
                     hasError = true
                 }
 
-                // Validacija lozinke
+                if (trimmedLastName.isEmpty()) {
+                    emailError = "Enter surname"
+                    hasError = true
+                }
+
+                if (trimmedEmail.isEmpty()) {
+                    emailError = "Enter email"
+                    hasError = true
+                } else if (!android.util.Patterns.EMAIL_ADDRESS.matcher(trimmedEmail).matches()) {
+                    emailError = "Email format is not valid"
+                    hasError = true
+                }
+
                 if (trimmedPassword.isEmpty()) {
-                    passwordError = "Unesite lozinku"
+                    passwordError = "Enter password"
                     hasError = true
                 } else if (trimmedPassword.length < 6) {
-                    passwordError = "Lozinka mora imati minimum 6 karaktera"
+                    passwordError = "Password must be at least 6 characters"
                     hasError = true
                 }
 
-                // Validacija telefona
                 if (trimmedPhone.isEmpty()) {
-                    phoneError = "Unesite broj telefona"
+                    phoneError = "Enter phone number"
                     hasError = true
                 }
 
-                // Ako nema grešaka, pozovi registraciju
                 if (!hasError) {
-                    onRegisterClick(trimmedEmail, trimmedPassword, trimmedPhone, profileBitmap)
+                    onRegisterClick(trimmedFirstName, trimmedLastName, trimmedEmail, trimmedPassword, trimmedPhone, profileBitmap)
                 } else {
-                    Toast.makeText(context, "Molimo popunite sva polja ispravno", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "Please enter all valid input", Toast.LENGTH_SHORT).show()
                 }
             },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 24.dp)
         ) {
-            Text("Registruj se")
+            Text("Register")
         }
 
         TextButton(
             onClick = { onNavigateToLogin() },
             modifier = Modifier.padding(top = 12.dp)
         ) {
-            Text("Već imate nalog? Ulogujte se")
+            Text("Already have an account? Login!")
         }
     }
 }
