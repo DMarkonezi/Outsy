@@ -11,7 +11,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.outsy.ui.HomeScreen
+import com.example.outsy.ui.main.HomeScreen
 import com.example.outsy.ui.auth.LoginScreen
 import com.example.outsy.ui.auth.RegisterScreen
 import com.example.outsy.viewmodel.AuthViewModel
@@ -72,7 +72,7 @@ fun MyApp() {
             }
 
             composable("home") {
-                HomeScreen()
+                HomeScreen(navController)
             }
         }
     }
