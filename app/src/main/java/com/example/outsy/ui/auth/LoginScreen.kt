@@ -47,7 +47,7 @@ fun LoginScreen(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text("Prijava", style = MaterialTheme.typography.headlineSmall)
+        Text("Login", style = MaterialTheme.typography.headlineSmall)
 
         OutlinedTextField(
             value = email,
@@ -59,7 +59,7 @@ fun LoginScreen(
         OutlinedTextField(
             value = password,
             onValueChange = { password = it },
-            label = { Text("Lozinka") },
+            label = { Text("Password") },
             singleLine = true,
             visualTransformation = PasswordVisualTransformation(),
             modifier = Modifier.fillMaxWidth().padding(top = 16.dp)
@@ -69,14 +69,14 @@ fun LoginScreen(
             onClick = { onLoginClick(email, password) },
             modifier = Modifier.fillMaxWidth().padding(top = 24.dp)
         ) {
-            Text("Prijavi se")
+            Text("Login")
         }
 
         TextButton(
             onClick = { onNavigateToRegister() },
             modifier = Modifier.padding(top = 12.dp)
         ) {
-            Text("Nemate nalog? Registrujte se")
+            Text("Don't have an account? Register")
         }
     }
 }
