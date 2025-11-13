@@ -4,6 +4,7 @@ import com.google.firebase.firestore.GeoPoint
 
 data class User(
     val uid: String,
+    val username: String,
     val firstName: String,
     val lastName: String,
     val email: String,
