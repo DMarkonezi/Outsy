@@ -27,10 +27,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.outsy.ui.main.HomeScreen
 import com.example.outsy.viewmodel.AuthViewModel
 
 //@Preview(showBackground = true, showSystemUi = true)

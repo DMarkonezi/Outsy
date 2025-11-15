@@ -11,20 +11,21 @@ import androidx.compose.material.icons.outlined.Place
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.example.outsy.ui.user.ranking.map.UserMapComponent
 
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun HomeScreenPreview() {
     MaterialTheme {
         val navController = rememberNavController()
-        HomeScreen(navController)
+        UserMainScreen(navController)
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(navController: NavController) {
-    var selectedTab by remember { mutableStateOf(0) }
+fun UserMainScreen(navController: NavController) {
+    var selectedTab by remember { mutableIntStateOf(0) }
 
     Scaffold(
         topBar = @androidx.compose.runtime.Composable {
@@ -86,7 +87,7 @@ fun HomeScreen(navController: NavController) {
         ) {
             when (selectedTab) {
                 // 0 -> RankingScreen()
-                // 1 -> MapScreen()
+                1 -> UserMapComponent(navController)
                 // 2 -> FriendsScreen()
             }
         }
